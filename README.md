@@ -6,6 +6,8 @@ Inspired by the stock Android power menu, it offers various reboot and lock acti
 
 ![](screenshot/screenshot.png)
 
+Release: [Xposed-Modules-Repo](https://github.com/Xposed-Modules-Repo/com.sui.advancedpowermenu/releases)
+
 Support: [t.me/SuiAndroidMods](https://t.me/SuiAndroidMods)
 
 ## Features
