@@ -146,4 +146,4 @@ The module automatically prefers Android's internal APIs over shell commands whe
 
 CC-BY-NC-ND-4.0
 
-See [`LICENSE`](https://github.com/Xposed-Modules-Repo/com.sui.advancedpowermenu/blob/main/LICENSE.md) for full details.
+See [`LICENSE`](https://github.com/Sui9x/AdvancedPowerMenu/blob/source/LICENSE.md) for full details.
