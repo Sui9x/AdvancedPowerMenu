@@ -1,3 +1,5 @@
+//v2.3
+
 package com.sui.advancedpowermenu
 
 import android.app.*
@@ -194,7 +196,7 @@ class Hook : IXposedHookLoadPackage {
                 cl
             )
         } catch (t: Throwable) {
-            logAlways("PWM init: WindowManagerFuncs not found: $t")
+            logAlways("PhoneWindowManager#init: WindowManagerFuncs not found: $t")
             return
         }
     
@@ -245,21 +247,21 @@ class Hook : IXposedHookLoadPackage {
                             }
     
                             logAlways(
-                                "PWM init hooked, context=$pwmContext"
+                                "PhoneWindowManager#init hooked, context=$pwmContext"
                             )
                         }
                     }
                 )
     
                 logAlways(
-                    "PWM init signature hooked: ${sig.size} args"
+                    "PhoneWindowManager#init signature hooked: ${sig.size} args"
                 )
                 return
             } catch (_: Throwable) {
             }
         }
     
-        logAlways("PWM init hook failed")
+        logAlways("PhoneWindowManager#init hook failed")
     }
 
     private fun hookKeyState(lpparam: XC_LoadPackage.LoadPackageParam) {
@@ -272,6 +274,7 @@ class Hook : IXposedHookLoadPackage {
                 Int::class.javaPrimitiveType,
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
+                        log("PhoneWindowManager.interceptKeyBeforeQueueing()")
                         val ev = param.args[0] as? KeyEvent ?: return
                         if ((ev.flags and KeyEvent.FLAG_FROM_SYSTEM) == 0) return
 
@@ -297,9 +300,9 @@ class Hook : IXposedHookLoadPackage {
                     }
                 }
             )
-            logAlways("interceptKeyBeforeQueueing hooked")
+            logAlways("PhoneWindowManager#interceptKeyBeforeQueueing hooked")
         } catch (t: Throwable) {
-            logAlways("interceptKeyBeforeQueueing hook failed: $t")
+            logAlways("PhoneWindowManager#interceptKeyBeforeQueueing hook failed: $t")
         }
     }
 
@@ -311,7 +314,7 @@ class Hook : IXposedHookLoadPackage {
                 "showGlobalActions",
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
-                        log("showGlobalActions")
+                        log("PhoneWindowManager.showGlobalActions()")
                         val cfg = config()
                         if (!cfg.enabled) return
                         if (cfg.workaroundPower) return
@@ -326,7 +329,7 @@ class Hook : IXposedHookLoadPackage {
                             return
                         }
 
-                        log("showGlobalActions intercepted from Power+VolUp")
+                        log("PhoneWindowManager#showGlobalActions intercepted from Power+VolUp")
 
                         lastPowerVolUpAt = 0L
                         sendShowAdvancedBroadcast()
@@ -335,9 +338,9 @@ class Hook : IXposedHookLoadPackage {
                     }
                 }
             )
-            logAlways("showGlobalActions hooked")
+            logAlways("PhoneWindowManager#showGlobalActions hooked")
         } catch (t: Throwable) {
-            logAlways("showGlobalActions hook failed: $t")
+            logAlways("PhoneWindowManager#showGlobalActions hook failed: $t")
         }
     }
     
@@ -349,7 +352,7 @@ class Hook : IXposedHookLoadPackage {
                 "showGlobalActionsInternal",
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
-                        log("showGlobalActionsInternal")
+                        log("PhoneWindowManager.showGlobalActionsInternal()")
                         
                         val cfg = config()
                         if (!cfg.enabled) return
@@ -363,16 +366,16 @@ class Hook : IXposedHookLoadPackage {
                             return
                         }
 
-                        log("showGlobalActionsInternal intercepted")
+                        log("PhoneWindowManager#showGlobalActionsInternal intercepted")
 
                         sendShowAdvancedBroadcast()
                         param.result = null
                     }
                 }
             )
-            logAlways("showGlobalActionsInternal hooked")
+            logAlways("PhoneWindowManager#showGlobalActionsInternal hooked")
         } catch (t: Throwable) {
-            logAlways("showGlobalActionsInternal hook failed: $t")
+            logAlways("PhoneWindowManager#showGlobalActionsInternal hook failed: $t")
         }
     }
     
@@ -388,7 +391,7 @@ class Hook : IXposedHookLoadPackage {
                 Boolean::class.javaPrimitiveType,
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
-                        log("GlobalActions#showDialog")
+                        log("GlobalActions.showDialog()")
     
                         val cfg = config()
                         if (!cfg.enabled) return
@@ -423,7 +426,7 @@ class Hook : IXposedHookLoadPackage {
                 Long::class.javaPrimitiveType, // eventTime
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
-                        log("powerLongPress")
+                        log("PhoneWindowManager.powerLongPress()")
                         
                         val cfg = config()
                         if (!cfg.enabled) return
@@ -436,8 +439,6 @@ class Hook : IXposedHookLoadPackage {
                             log("keyguard showing; pass original internal")
                             return
                         }
-
-                        log("powerLongPress")
                         
                         markPowerKeyHandled(param.thisObject)
                         
@@ -450,7 +451,7 @@ class Hook : IXposedHookLoadPackage {
                     }
                 }
             )
-            logAlways("powerLongPress hooked")
+            logAlways("PhoneWindowManager#powerLongPress hooked")
         } catch (t: Throwable) {
             try {
                 XposedHelpers.findAndHookMethod(
@@ -459,7 +460,7 @@ class Hook : IXposedHookLoadPackage {
                     "powerLongPress",
                     object : XC_MethodHook() {
                         override fun beforeHookedMethod(param: MethodHookParam) {
-                            log("powerLongPress")
+                            log("PhoneWindowManager.powerLongPress()")
                             
                             val cfg = config()
                             if (!cfg.enabled) return
@@ -472,8 +473,6 @@ class Hook : IXposedHookLoadPackage {
                                 log("keyguard showing; pass original internal")
                                 return
                             }
-    
-                            log("powerLongPress")
                             
                             markPowerKeyHandled(param.thisObject)
                             
@@ -486,9 +485,9 @@ class Hook : IXposedHookLoadPackage {
                         }
                     }
                 )
-                logAlways("powerLongPress hooked")
+                logAlways("PhoneWindowManager#powerLongPress hooked")
             } catch (t: Throwable) {
-                logAlways("powerLongPress hook failed: $t")
+                logAlways("PhoneWindowManager#powerLongPress hook failed: $t")
             }
         }
     }
@@ -500,7 +499,7 @@ class Hook : IXposedHookLoadPackage {
                 "mPowerKeyHandled",
                 true
             )
-            log("mPowerKeyHandled=true")
+            log("PhoneWindowManager#mPowerKeyHandled=true")
             true
         } catch (t: Throwable) {
             log("markPowerKeyHandled failed: $t")
@@ -520,61 +519,146 @@ class Hook : IXposedHookLoadPackage {
             var hooked = 0
     
             for (method in cls.declaredMethods) {
-                if (method.name != "showOrHideDialog") continue
+                // A15/16: showOrHideDialog(...)
+                // A17: showOrHideDialog(...) showDialog(...)
+                if (
+                    method.name != "showOrHideDialog" &&
+                    method.name != "showDialog"
+                ) {
+                    continue
+                }
     
                 val types = method.parameterTypes
-                if (types.size != 3) continue
+                
+                // A15: (boolean, boolean, Expandable)
+                //A16/17: (boolean, boolean, Expandable, int displayId)
+                if (types.size != 3 && types.size != 4) continue
+    
                 if (types[0] != Boolean::class.javaPrimitiveType) continue
                 if (types[1] != Boolean::class.javaPrimitiveType) continue
+    
+                if (
+                    types[2].name !=
+                    "com.android.systemui.animation.Expandable"
+                ) {
+                    continue
+                }
+                
+                // A16/17
+                if (
+                    types.size == 4 &&
+                    types[3] != Int::class.javaPrimitiveType
+                ) {
+                    continue
+                }
     
                 XposedBridge.hookMethod(
                     method,
                     object : XC_MethodHook() {
-                        override fun beforeHookedMethod(
-                            param: MethodHookParam
-                        ) {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            log("GlobalActionsDialogLite.${method.name}()")
+                            
                             val cfg = config()
+    
                             if (!cfg.enabled) return
                             if (!cfg.enabledQs) return
-
-                            val expandable = param.args[2]
+                            
+                            val expandable = param.args.getOrNull(2)
+    
                             if (expandable == null) {
-                                log("showOrHideDialog: Not QS path; pass")
+                                log(
+                                    "${method.name}: " +
+                                        "Not QS path; pass"
+                                )
                                 return
                             }
     
                             val keyguardShowing =
-                                (param.args[0] as? Boolean ?: false) ||
+                                (param.args.getOrNull(0) as? Boolean ?: false) ||
                                     isSystemUiKeyguardLocked()
-                            
-                            if (cfg.excludeKeyguard && keyguardShowing) {
-                                log("QS power menu on keyguard; pass")
+    
+                            if (
+                                cfg.excludeKeyguard &&
+                                keyguardShowing
+                            ) {
+                                log(
+                                    "${method.name}: " +
+                                        "QS power menu on keyguard; pass"
+                                )
                                 return
                             }
     
-                            log("QS GlobalActions intercepted")
+                            val displayId =
+                                if (param.args.size >= 4) {
+                                    param.args[3] as? Int
+                                } else {
+                                    null
+                                }
     
-                            val context = systemUiContext ?: return
-
+                            log(
+                                "${method.name}: QS intercepted " +
+                                    "args=${param.args.size}" +
+                                    if (displayId != null) {
+                                        " displayId=$displayId"
+                                    } else {
+                                        ""
+                                    }
+                            )
+    
+                            val context = systemUiContext ?: run {
+                                log(
+                                    "${method.name}: " +
+                                        "SystemUI context unavailable; pass"
+                                )
+                                return
+                            }
+                            
+                            param.result = null
+    
                             Handler(Looper.getMainLooper()).post {
                                 AdvancedPowerMenuDialog.show(context)
                             }
-    
-                            param.result = null
                         }
                     }
                 )
     
                 hooked++
+    
                 logAlways(
-                    "GlobalActionsDialogLite#" +
-                        "showOrHideDialog/${types.size} hooked"
+                    "GlobalActionsDialogLite#${method.name} hooked " +
+                        method.parameterTypes.joinToString(
+                            prefix = "(",
+                            postfix = ")"
+                        ) { it.name }
                 )
             }
     
             if (hooked == 0) {
                 logAlways(
-                    "GlobalActionsDialogLite showOrHideDialog not found"
+                    "GlobalActionsDialogLite: " +
+                        "compatible show method not found"
+                )
+
+                // unknown signature
+                for (method in cls.declaredMethods) {
+                    if (
+                        method.name != "showOrHideDialog" &&
+                        method.name != "showDialog"
+                    ) {
+                        continue
+                    }
+    
+                    logAlways(
+                        "Unsupported ${method.name} signature: " +
+                            method.parameterTypes.joinToString(
+                                prefix = "(",
+                                postfix = ")"
+                            ) { it.name }
+                    )
+                }
+            } else {
+                logAlways(
+                    "QS GlobalActions hooked: $hooked"
                 )
             }
         } catch (t: Throwable) {
