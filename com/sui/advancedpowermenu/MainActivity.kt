@@ -1,9 +1,11 @@
+//v2.4
+
 package com.sui.advancedpowermenu
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.os.Bundle
+import android.os.*
 import android.widget.*
 import android.view.*
 import androidx.appcompat.app.*
@@ -98,12 +100,14 @@ class MainActivity : AppCompatActivity() {
             def = ConfigKeys.DEFAULT_WORKAROUND_POWER
         )
         
-        addSwitchRow(
-            title = "Replace QS Power Menu (Experimental)",
-            summary = "Replaces the action of the power menu button on the quick settings panel.",
-            key = ConfigKeys.KEY_ENABLED_QS,
-            def = ConfigKeys.DEFAULT_ENABLED_QS
-        )
+        if (Build.VERSION.SDK_INT >= 31) {
+            addSwitchRow(
+                title = "Replace QS Power Menu (Experimental)",
+                summary = "Replaces the action of the power menu button on the quick settings panel.",
+                key = ConfigKeys.KEY_ENABLED_QS,
+                def = ConfigKeys.DEFAULT_ENABLED_QS
+            )
+        }
         
         addSwitchRow(
             title = "Workarounds for Restart Zygote",
