@@ -1,4 +1,4 @@
-//v2.3
+//v2.4
 
 package com.sui.advancedpowermenu
 
@@ -712,20 +712,39 @@ class Hook : IXposedHookLoadPackage {
     }
 
     private fun installReceiver(app: Application) {
+        logAlways(
+            "installReceiver" +
+                " process=${currentProcessName(app)}" +
+                " uid=${Process.myUid()}" +
+                " sdk=${Build.VERSION.SDK_INT}"
+        )
+    
         val filter = IntentFilter(ACTION_SHOW_ADVANCED)
-
+    
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                log(
+                    "receiver onReceive" +
+                        " process=${currentProcessName(context)}" +
+                        " action=${intent.action}" +
+                        " tokenMatch=${intent.getStringExtra("token") == TOKEN}"
+                )
+    
                 if (currentProcessName(context) != PKG_SYSTEMUI) {
                     log("receiver skip non-main process=${currentProcessName(context)}")
                     return
                 }
-                if (intent.action != ACTION_SHOW_ADVANCED) return
+    
+                if (intent.action != ACTION_SHOW_ADVANCED) {
+                    log("receiver skip unexpected action=${intent.action}")
+                    return
+                }
+    
                 if (intent.getStringExtra("token") != TOKEN) {
                     log("reject broadcast: bad token")
                     return
                 }
-
+    
                 val now = SystemClock.uptimeMillis()
                 synchronized(systemUiReceiveLock) {
                     if (now - lastSystemUiReceiveAt < 250) {
@@ -734,30 +753,49 @@ class Hook : IXposedHookLoadPackage {
                     }
                     lastSystemUiReceiveAt = now
                 }
-
+    
+                log("receiver accepted")
+    
                 Handler(Looper.getMainLooper()).post {
                     log("calling show")
                     AdvancedPowerMenuDialog.show(context)
                 }
             }
         }
-
-        if (Build.VERSION.SDK_INT >= 33) {
-            app.registerReceiver(
-                receiver,
-                filter,
-                PERMISSION_STATUS_BAR_SERVICE,
-                null,
-                Context.RECEIVER_EXPORTED
+    
+        logAlways(
+            "registerReceiver" +
+                " action=$ACTION_SHOW_ADVANCED" +
+                " permission=$PERMISSION_STATUS_BAR_SERVICE" +
+                " exported=${Build.VERSION.SDK_INT >= 33}"
+        )
+    
+        try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                app.registerReceiver(
+                    receiver,
+                    filter,
+                    PERMISSION_STATUS_BAR_SERVICE,
+                    null,
+                    Context.RECEIVER_EXPORTED
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                app.registerReceiver(
+                    receiver,
+                    filter,
+                    PERMISSION_STATUS_BAR_SERVICE,
+                    null
+                )
+            }
+    
+            logAlways("registerReceiver success")
+        } catch (t: Throwable) {
+            logAlways(
+                "registerReceiver failed: " +
+                    android.util.Log.getStackTraceString(t)
             )
-        } else {
-            @Suppress("DEPRECATION")
-            app.registerReceiver(
-                receiver,
-                filter,
-                PERMISSION_STATUS_BAR_SERVICE,
-                null
-            )
+            throw t
         }
     }
 
