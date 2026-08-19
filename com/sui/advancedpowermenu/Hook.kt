@@ -1,4 +1,4 @@
-//v2.4
+//v2.5
 
 package com.sui.advancedpowermenu
 
@@ -669,7 +669,7 @@ class Hook : IXposedHookLoadPackage {
     private fun hookSystemUI(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
             XposedHelpers.findAndHookMethod(
-                "com.android.systemui.SystemUIApplication",
+                "com.android.systemui.application.impl.SystemUIApplicationImpl", //A17
                 lpparam.classLoader,
                 "onCreate",
                 object : XC_MethodHook() {
@@ -699,7 +699,40 @@ class Hook : IXposedHookLoadPackage {
                 }
             )
         } catch (t: Throwable) {
-            logAlways("SystemUI hook failed: $t")
+            try {
+                XposedHelpers.findAndHookMethod(
+                    "com.android.systemui.SystemUIApplication",
+                    lpparam.classLoader,
+                    "onCreate",
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            val app = param.thisObject as Application
+    
+                            val proc = currentProcessName(app)
+                            logAlways("SystemUI onCreate process=$proc pid=${android.os.Process.myPid()}")
+    
+                            if (proc != PKG_SYSTEMUI) {
+                                logAlways("skip receiver install: non-main SystemUI process=$proc")
+                                return
+                            }
+                            
+                            synchronized(receiverInstallLock) {
+                                if (systemUiReceiverInstalled) return
+                                systemUiReceiverInstalled = true
+                            }
+                            
+                            systemUiContext = app
+    
+                            installReceiver(app)
+                            logAlways("SystemUI receiver installed")
+                            
+                            hookQsGlobalActions(lpparam)
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                logAlways("SystemUI hook failed: $t")
+            }
         }
     }
     
