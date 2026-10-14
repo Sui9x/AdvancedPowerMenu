@@ -1,3 +1,5 @@
+//v2.7
+
 package com.sui.advancedpowermenu
 
 import android.content.Context
@@ -61,7 +63,22 @@ object AdvancedPowerMenuDialog {
         val workaroundAm: Boolean,
         val triggerHold: Boolean,
         val forceFallback: Boolean,
-        val detailedLog: Boolean
+        val detailedLog: Boolean,
+        
+        val menuColor: Int,
+        val menuAlpha: Int,
+    
+        val buttonColor: Int,
+        val buttonAlpha: Int,
+    
+        val outlineColor: Int,
+        val outlineAlpha: Int,
+    
+        val contentColor: Int,
+        val contentAlpha: Int,
+    
+        val progressColor: Int,
+        val progressAlpha: Int
     )
 
     @Volatile private var cachedConfig = AdvConfig(
@@ -72,7 +89,32 @@ object AdvancedPowerMenuDialog {
         workaroundAm = ConfigKeys.DEFAULT_WORKAROUND_AM,
         triggerHold = ConfigKeys.DEFAULT_TRIGGER_HOLD,
         forceFallback = ConfigKeys.DEFAULT_FORCE_FALLBACK,
-        detailedLog = ConfigKeys.DEFAULT_DETAILED_LOG
+        detailedLog = ConfigKeys.DEFAULT_DETAILED_LOG,
+        
+        menuColor = Color.parseColor(
+            ConfigKeys.DEFAULT_MENU_COLOR
+        ),
+        menuAlpha = ConfigKeys.DEFAULT_MENU_ALPHA,
+    
+        buttonColor = Color.parseColor(
+            ConfigKeys.DEFAULT_BUTTON_COLOR
+        ),
+        buttonAlpha = ConfigKeys.DEFAULT_BUTTON_ALPHA,
+    
+        outlineColor = Color.parseColor(
+            ConfigKeys.DEFAULT_OUTLINE_COLOR
+        ),
+        outlineAlpha = ConfigKeys.DEFAULT_OUTLINE_ALPHA,
+    
+        contentColor = Color.parseColor(
+            ConfigKeys.DEFAULT_CONTENT_COLOR
+        ),
+        contentAlpha = ConfigKeys.DEFAULT_CONTENT_ALPHA,
+    
+        progressColor = Color.parseColor(
+            ConfigKeys.DEFAULT_PROGRESS_COLOR
+        ),
+        progressAlpha = ConfigKeys.DEFAULT_PROGRESS_ALPHA
     )
 
     @Volatile private var lastConfigReadAt = 0L
@@ -129,6 +171,61 @@ object AdvancedPowerMenuDialog {
                 detailedLog = prefs.getBoolean(
                     ConfigKeys.KEY_DETAILED_LOG,
                     ConfigKeys.DEFAULT_DETAILED_LOG
+                ),
+                
+                menuColor = prefColor(
+                    prefs,
+                    ConfigKeys.KEY_MENU_COLOR,
+                    ConfigKeys.DEFAULT_MENU_COLOR
+                ),
+                menuAlpha = prefAlpha(
+                    prefs,
+                    ConfigKeys.KEY_MENU_ALPHA,
+                    ConfigKeys.DEFAULT_MENU_ALPHA
+                ),
+                
+                buttonColor = prefColor(
+                    prefs,
+                    ConfigKeys.KEY_BUTTON_COLOR,
+                    ConfigKeys.DEFAULT_BUTTON_COLOR
+                ),
+                buttonAlpha = prefAlpha(
+                    prefs,
+                    ConfigKeys.KEY_BUTTON_ALPHA,
+                    ConfigKeys.DEFAULT_BUTTON_ALPHA
+                ),
+                
+                outlineColor = prefColor(
+                    prefs,
+                    ConfigKeys.KEY_OUTLINE_COLOR,
+                    ConfigKeys.DEFAULT_OUTLINE_COLOR
+                ),
+                outlineAlpha = prefAlpha(
+                    prefs,
+                    ConfigKeys.KEY_OUTLINE_ALPHA,
+                    ConfigKeys.DEFAULT_OUTLINE_ALPHA
+                ),
+                
+                contentColor = prefColor(
+                    prefs,
+                    ConfigKeys.KEY_CONTENT_COLOR,
+                    ConfigKeys.DEFAULT_CONTENT_COLOR
+                ),
+                contentAlpha = prefAlpha(
+                    prefs,
+                    ConfigKeys.KEY_CONTENT_ALPHA,
+                    ConfigKeys.DEFAULT_CONTENT_ALPHA
+                ),
+                
+                progressColor = prefColor(
+                    prefs,
+                    ConfigKeys.KEY_PROGRESS_COLOR,
+                    ConfigKeys.DEFAULT_PROGRESS_COLOR
+                ),
+                progressAlpha = prefAlpha(
+                    prefs,
+                    ConfigKeys.KEY_PROGRESS_ALPHA,
+                    ConfigKeys.DEFAULT_PROGRESS_ALPHA
                 )
             )
     
@@ -253,15 +350,21 @@ object AdvancedPowerMenuDialog {
 
             background = roundedBg(
                 radius = dp(context, 24).toFloat(),
-                color = Tint.U1N9_LIGHT_BLUE,
-                alpha = 80
+                color = cfg.menuColor,
+                alpha = cfg.menuAlpha
             )
         }
 
         root.addView(TextView(context).apply {
             text = "Advanced Power Menu"
             textSize = 18f
-            setTextColor(Color.WHITE)
+            setTextColor(
+                withAlpha(
+                    cfg.contentColor,
+                    cfg.contentAlpha
+                )
+            )
+            gravity = Gravity.CENTER
         })
 
         root.addView(space(context, 16))
@@ -357,8 +460,12 @@ object AdvancedPowerMenuDialog {
             isClickable = true
             background = roundedBg(
                 radius = dp(context, 20).toFloat(),
-                color = Color.TRANSPARENT,
-                strokeColor = Color.WHITE,
+                color = cfg.buttonColor,
+                alpha = cfg.buttonAlpha,
+                strokeColor = withAlpha(
+                    cfg.outlineColor,
+                    cfg.outlineAlpha
+                ),
                 strokeWidth = xdp(context, 1, 1.5f)
             )
         }
@@ -368,10 +475,10 @@ object AdvancedPowerMenuDialog {
         val progressView = View(context).apply {
             background = roundedBg(
                 radius = dp(context, 20).toFloat(),
-                color = Tint.U1N9_LIGHT_BLUE,
-                alpha = 48,
+                color = cfg.progressColor,
+                alpha = cfg.progressAlpha,
                 strokeColor = Color.TRANSPARENT,
-                strokeWidth = 0
+                strokeWidth = xdp(context, 1, 1.5f)
             )
             visibility = if (cfg.triggerHold) View.VISIBLE else View.GONE
         }
@@ -401,7 +508,12 @@ object AdvancedPowerMenuDialog {
                     setImageDrawable(it)
                 }
 
-                setColorFilter(Color.WHITE)
+                setColorFilter(
+                    withAlpha(
+                        cfg.contentColor,
+                        cfg.contentAlpha
+                    )
+                )
 
                 layoutParams = LinearLayout.LayoutParams(
                     dp(context, 32),
@@ -411,7 +523,12 @@ object AdvancedPowerMenuDialog {
 
             val tv = TextView(context).apply {
                 this.text = text
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    withAlpha(
+                        cfg.contentColor,
+                        cfg.contentAlpha
+                    )
+                )
                 textSize = 11f
                 gravity = Gravity.CENTER
             }
@@ -793,19 +910,64 @@ object AdvancedPowerMenuDialog {
     private fun roundedBg(
         radius: Float,
         color: Int,
-        alpha: Int? = null,
+        alpha: Int = 255,
         strokeColor: Int = Color.TRANSPARENT,
         strokeWidth: Int = 0
-    ) = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        cornerRadius = radius
-        setColor(color)
-        
-        if (alpha != null) setAlpha(alpha)
-
-        if (strokeWidth > 0) {
-            setStroke(strokeWidth, strokeColor)
+    ): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = radius
+    
+            setColor(
+                withAlpha(
+                    color,
+                    alpha
+                )
+            )
+    
+            if (strokeWidth > 0) {
+                setStroke(
+                    strokeWidth,
+                    strokeColor
+                )
+            }
         }
+    }
+    
+    private fun prefColor(
+        prefs: XSharedPreferences,
+        key: String,
+        fallback: String
+    ): Int {
+        return try {
+            Color.parseColor(
+                prefs.getString(key, fallback)
+                    ?: fallback
+            )
+        } catch (_: Throwable) {
+            Color.parseColor(fallback)
+        }
+    }
+    
+    private fun prefAlpha(
+        prefs: XSharedPreferences,
+        key: String,
+        fallback: Int
+    ): Int {
+        return prefs.getInt(key, fallback)
+            .coerceIn(0, 255)
+    }
+    
+    private fun withAlpha(
+        color: Int,
+        alpha: Int
+    ): Int {
+        return Color.argb(
+            alpha.coerceIn(0, 255),
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        )
     }
 
     private fun dp(context: Context, v: Int): Int {
