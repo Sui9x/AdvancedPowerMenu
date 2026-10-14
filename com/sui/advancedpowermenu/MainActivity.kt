@@ -1,10 +1,11 @@
-//v2.4
+//v2.7
 
 package com.sui.advancedpowermenu
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.*
 import android.widget.*
 import android.view.*
@@ -35,6 +36,36 @@ object ConfigKeys {
     const val DEFAULT_TRIGGER_HOLD = true
     const val DEFAULT_FORCE_FALLBACK = false
     const val DEFAULT_DETAILED_LOG = false
+    
+    const val KEY_MENU_COLOR = "menu_color"
+    const val KEY_MENU_ALPHA = "menu_alpha"
+    
+    const val KEY_BUTTON_COLOR = "button_color"
+    const val KEY_BUTTON_ALPHA = "button_alpha"
+    
+    const val KEY_OUTLINE_COLOR = "outline_color"
+    const val KEY_OUTLINE_ALPHA = "outline_alpha"
+    
+    const val KEY_CONTENT_COLOR = "content_color"
+    const val KEY_CONTENT_ALPHA = "content_alpha"
+    
+    const val KEY_PROGRESS_COLOR = "progress_color"
+    const val KEY_PROGRESS_ALPHA = "progress_alpha"
+    
+    const val DEFAULT_MENU_COLOR = "#CDDDF2"
+    const val DEFAULT_MENU_ALPHA = 77
+    
+    const val DEFAULT_BUTTON_COLOR = "#CDDDF2"
+    const val DEFAULT_BUTTON_ALPHA = 0
+    
+    const val DEFAULT_OUTLINE_COLOR = "#FFFFFF"
+    const val DEFAULT_OUTLINE_ALPHA = 255
+    
+    const val DEFAULT_CONTENT_COLOR = "#FFFFFF"
+    const val DEFAULT_CONTENT_ALPHA = 255
+    
+    const val DEFAULT_PROGRESS_COLOR = "#CDDDF2"
+    const val DEFAULT_PROGRESS_ALPHA = 50
 }
 
 class MainActivity : AppCompatActivity() {
@@ -136,6 +167,15 @@ class MainActivity : AppCompatActivity() {
             key = ConfigKeys.KEY_DETAILED_LOG,
             def = ConfigKeys.DEFAULT_DETAILED_LOG
         )
+        
+        addNavigationRow(
+            title = "Appearance",
+            summary = "Customize menu colors and opacity."
+        ) {
+            startActivity(
+                Intent(this, AppearanceActivity::class.java)
+            )
+        }
 
         note(
             "Changes are read by the hook through cached preferences, so reboot or SystemUI restart is usually not required except after the initial installation or after updates."
@@ -221,6 +261,55 @@ class MainActivity : AppCompatActivity() {
         row.addView(texts)
         row.addView(sw)
 
+        root.addView(row)
+        root.addView(space(dp(12)))
+    }
+    
+    private fun addNavigationRow(
+        title: String,
+        summary: String,
+        onClick: () -> Unit
+    ) {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(16), dp(14), dp(16), dp(14))
+            background = roundedBg(
+                Color.parseColor("#1D1D1D"),
+                dp(18).toFloat()
+            )
+            isClickable = true
+            isFocusable = true
+        }
+    
+        val texts = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        }
+    
+        texts.addView(TextView(this).apply {
+            text = title
+            textSize = 14f
+            setTextColor(Color.WHITE)
+        })
+    
+        texts.addView(TextView(this).apply {
+            text = summary
+            textSize = 12f
+            setTextColor(Color.parseColor("#9A9A9A"))
+            setPadding(0, dp(4), dp(8), 0)
+        })
+    
+        row.addView(texts)
+    
+        row.setOnClickListener {
+            onClick()
+        }
+    
         root.addView(row)
         root.addView(space(dp(12)))
     }
